@@ -1,0 +1,191 @@
+version: '3.8'
+
+# ============================================================
+#  ENTERPRISE IAM STACK
+#  Keycloak 25 | OpenLDAP | PostgreSQL 16
+#  Payroll | HR | Inventory | phpLDAPadmin
+# ============================================================
+
+services:
+
+  # ── PostgreSQL 16 — Keycloak persistence backend ──────────
+  postgres:
+    image: postgres:16-alpine
+    container_name: keycloak-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: keycloak
+      POSTGRES_USER: keycloak
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-Keycloak@Secure2024}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init-scripts/init-db.sql:/docker-entrypoint-initdb.d/init-db.sql
+    ports:
+      - "5432:5432"
+    networks:
+      - iam-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U keycloak -d keycloak"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+  # ── OpenLDAP 2.6 — Enterprise User Directory ──────────────
+  openldap:
+    image: bitnami/openldap:2.6
+    container_name: openldap
+    restart: unless-stopped
+    environment:
+      LDAP_ADMIN_USERNAME: admin
+      LDAP_ADMIN_PASSWORD: ${LDAP_ADMIN_PASSWORD:-LdapAdmin@2024}
+      LDAP_ROOT: dc=company,dc=com
+      LDAP_ADMIN_DN: cn=admin,dc=company,dc=com
+      LDAP_CUSTOM_LDIF_DIR: /ldifs
+      BITNAMI_DEBUG: "false"
+    volumes:
+      - ./openldap/bootstrap:/ldifs:ro
+      - openldap_data:/bitnami/openldap
+    ports:
+      - "389:1389"
+      - "636:1636"
+    networks:
+      - iam-network
+
+  # ── phpLDAPadmin — LDAP Web UI (dev/admin) ─────────────────
+  phpldapadmin:
+    image: osixia/phpldapadmin:0.9.0
+    container_name: phpldapadmin
+    restart: unless-stopped
+    environment:
+      PHPLDAPADMIN_LDAP_HOSTS: openldap
+      PHPLDAPADMIN_HTTPS: "false"
+    ports:
+      - "8090:80"
+    depends_on:
+      - openldap
+    networks:
+      - iam-network
+
+  # ── Keycloak 25 — OIDC/OAuth2 Authorization Server ─────────
+  keycloak:
+    image: quay.io/keycloak/keycloak:25.0
+    container_name: keycloak
+    restart: unless-stopped
+    command: start-dev --import-realm
+    environment:
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://postgres:5432/keycloak
+      KC_DB_USERNAME: keycloak
+      KC_DB_PASSWORD: ${POSTGRES_PASSWORD:-Keycloak@Secure2024}
+      KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN:-admin}
+      KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD:-Admin@Secure2024}
+      KC_HEALTH_ENABLED: "true"
+      KC_METRICS_ENABLED: "true"
+      KC_LOG_LEVEL: INFO
+      KC_HTTP_ENABLED: "true"
+      KC_PROXY: passthrough
+    volumes:
+      - ./keycloak/realm-export:/opt/keycloak/data/import:ro
+    ports:
+      - "8080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - iam-network
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:8080/health/ready || exit 1"]
+      interval: 30s
+      timeout: 15s
+      retries: 15
+      start_period: 120s
+
+  # ── Keyclock App — Main Spring Boot API Gateway ─────────────
+  keyclock-app:
+    build:
+      context: ../
+      dockerfile: Dockerfile
+    container_name: keyclock-app
+    restart: unless-stopped
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      KEYCLOAK_ISSUER_URI: http://keycloak:8080/realms/company
+      KEYCLOAK_ADMIN_URL: http://keycloak:8080
+      KC_CLIENT_ID: spring-api
+      KC_CLIENT_SECRET: ${KC_CLIENT_SECRET:-spring-api-secret-2024}
+      SERVER_PORT: 8081
+    ports:
+      - "8081:8081"
+    depends_on:
+      keycloak:
+        condition: service_healthy
+    networks:
+      - iam-network
+
+  # ── Payroll Service — Port 8082 ────────────────────────────
+  payroll-service:
+    build:
+      context: ../services/payroll-service
+      dockerfile: Dockerfile
+    container_name: payroll-service
+    restart: unless-stopped
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      KEYCLOAK_ISSUER_URI: http://keycloak:8080/realms/company
+      SERVER_PORT: 8082
+    ports:
+      - "8082:8082"
+    depends_on:
+      keycloak:
+        condition: service_healthy
+    networks:
+      - iam-network
+
+  # ── HR Service — Port 8083 ─────────────────────────────────
+  hr-service:
+    build:
+      context: ../services/hr-service
+      dockerfile: Dockerfile
+    container_name: hr-service
+    restart: unless-stopped
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      KEYCLOAK_ISSUER_URI: http://keycloak:8080/realms/company
+      SERVER_PORT: 8083
+    ports:
+      - "8083:8083"
+    depends_on:
+      keycloak:
+        condition: service_healthy
+    networks:
+      - iam-network
+
+  # ── Inventory Service — Port 8084 ──────────────────────────
+  inventory-service:
+    build:
+      context: ../services/inventory-service
+      dockerfile: Dockerfile
+    container_name: inventory-service
+    restart: unless-stopped
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      KEYCLOAK_ISSUER_URI: http://keycloak:8080/realms/company
+      SERVER_PORT: 8084
+    ports:
+      - "8084:8084"
+    depends_on:
+      keycloak:
+        condition: service_healthy
+    networks:
+      - iam-network
+
+volumes:
+  postgres_data:
+    driver: local
+  openldap_data:
+    driver: local
+
+networks:
+  iam-network:
+    driver: bridge

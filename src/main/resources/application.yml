@@ -1,0 +1,79 @@
+# ============================================================
+# MAIN APPLICATION CONFIGURATION
+# Keyclock — Enterprise IAM API Gateway
+# ============================================================
+
+spring:
+  application:
+    name: keyclock-api-gateway
+
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          # Keycloak issues tokens, we validate using the public key from JWKS
+          issuer-uri: ${KEYCLOAK_ISSUER_URI:http://localhost:8080/realms/company}
+          jwk-set-uri: ${KEYCLOAK_ISSUER_URI:http://localhost:8080/realms/company}/protocol/openid-connect/certs
+
+  # LDAP configuration (direct Spring LDAP for admin ops)
+  ldap:
+    urls: ldap://localhost:389
+    base: dc=company,dc=com
+    username: cn=admin,dc=company,dc=com
+    password: ${LDAP_ADMIN_PASSWORD:LdapAdmin@2024}
+
+server:
+  port: ${SERVER_PORT:8081}
+  error:
+    include-message: always
+    include-binding-errors: always
+
+# Keycloak Admin REST API configuration
+keycloak:
+  admin:
+    server-url: ${KEYCLOAK_ADMIN_URL:http://localhost:8080}
+    realm: company
+    client-id: admin-cli-custom
+    client-secret: ${KC_ADMIN_CLIENT_SECRET:admin-cli-secret-2024}
+  client:
+    id: ${KC_CLIENT_ID:spring-api}
+    secret: ${KC_CLIENT_SECRET:spring-api-secret-2024}
+  token-endpoint: ${KEYCLOAK_ISSUER_URI:http://localhost:8080/realms/company}/protocol/openid-connect/token
+  logout-endpoint: ${KEYCLOAK_ISSUER_URI:http://localhost:8080/realms/company}/protocol/openid-connect/logout
+  userinfo-endpoint: ${KEYCLOAK_ISSUER_URI:http://localhost:8080/realms/company}/protocol/openid-connect/userinfo
+
+# Actuator endpoints
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      show-details: when-authorized
+  info:
+    env:
+      enabled: true
+
+# Swagger / OpenAPI config
+springdoc:
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    oauth2-redirect-url: http://localhost:8081/swagger-ui/oauth2-redirect.html
+  show-actuator: true
+
+# Logging
+logging:
+  level:
+    root: INFO
+    keyclock.example: DEBUG
+    org.springframework.security: DEBUG
+    org.springframework.ldap: DEBUG
+
+info:
+  app:
+    name: Keyclock Enterprise IAM Gateway
+    version: 1.0.0
+    description: Production IAM Gateway with Keycloak + OpenLDAP + SSO

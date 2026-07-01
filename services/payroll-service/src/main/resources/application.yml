@@ -1,0 +1,37 @@
+spring:
+  application:
+    name: payroll-service
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          # Keycloak public key fetched from this endpoint ONCE at startup
+          # All subsequent JWT validations are done LOCALLY — no network call per request
+          issuer-uri: ${KEYCLOAK_ISSUER_URI:http://localhost:8080/realms/company}
+          jwk-set-uri: ${KEYCLOAK_ISSUER_URI:http://localhost:8080/realms/company}/protocol/openid-connect/certs
+
+server:
+  port: ${SERVER_PORT:8082}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+
+springdoc:
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+
+logging:
+  level:
+    com.company.payroll: DEBUG
+    org.springframework.security: INFO
+
+info:
+  app:
+    name: Payroll Service
+    description: JWT-protected payroll microservice
+    required-roles: ROLE_PAYROLL, ROLE_ADMIN

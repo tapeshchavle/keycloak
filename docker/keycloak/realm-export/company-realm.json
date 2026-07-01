@@ -1,0 +1,350 @@
+{
+  "id": "company",
+  "realm": "company",
+  "displayName": "Company Enterprise IAM",
+  "displayNameHtml": "<strong>Company</strong> Enterprise IAM",
+  "enabled": true,
+  "sslRequired": "external",
+  "registrationAllowed": false,
+  "loginWithEmailAllowed": true,
+  "duplicateEmailsAllowed": false,
+  "resetPasswordAllowed": true,
+  "editUsernameAllowed": false,
+  "bruteForceProtected": true,
+  "permanentLockout": false,
+  "maxFailureWaitSeconds": 900,
+  "minimumQuickLoginWaitSeconds": 60,
+  "waitIncrementSeconds": 60,
+  "quickLoginCheckMilliSeconds": 1000,
+  "maxDeltaTimeSeconds": 43200,
+  "failureFactor": 10,
+  "defaultSignatureAlgorithm": "RS256",
+  "revokeRefreshToken": true,
+  "refreshTokenMaxReuse": 0,
+
+  "accessTokenLifespan": 300,
+  "accessTokenLifespanForImplicitFlow": 900,
+  "ssoSessionIdleTimeout": 1800,
+  "ssoSessionMaxLifespan": 28800,
+  "ssoSessionIdleTimeoutRememberMe": 0,
+  "ssoSessionMaxLifespanRememberMe": 0,
+  "offlineSessionIdleTimeout": 2592000,
+  "offlineSessionMaxLifespan": 5184000,
+  "clientSessionIdleTimeout": 0,
+  "clientSessionMaxLifespan": 0,
+  "clientOfflineSessionIdleTimeout": 0,
+  "clientOfflineSessionMaxLifespan": 0,
+
+  "passwordPolicy": "hashIterations(27500) and minLength(12) and upperCase(1) and digits(1) and specialChars(1) and notUsername(undefined) and notEmail(undefined)",
+
+  "roles": {
+    "realm": [
+      {
+        "name": "ADMIN",
+        "description": "Full system administrator access",
+        "composite": false,
+        "clientRole": false,
+        "containerId": "company"
+      },
+      {
+        "name": "USER",
+        "description": "Standard employee access",
+        "composite": false,
+        "clientRole": false,
+        "containerId": "company"
+      },
+      {
+        "name": "PAYROLL",
+        "description": "Access to payroll service",
+        "composite": false,
+        "clientRole": false,
+        "containerId": "company"
+      },
+      {
+        "name": "HR",
+        "description": "Access to HR service",
+        "composite": false,
+        "clientRole": false,
+        "containerId": "company"
+      },
+      {
+        "name": "INVENTORY",
+        "description": "Access to inventory service",
+        "composite": false,
+        "clientRole": false,
+        "containerId": "company"
+      }
+    ]
+  },
+
+  "groups": [
+    {
+      "name": "admins",
+      "realmRoles": ["ADMIN", "USER", "PAYROLL", "HR", "INVENTORY"]
+    },
+    {
+      "name": "payroll-team",
+      "realmRoles": ["PAYROLL", "USER"]
+    },
+    {
+      "name": "hr-team",
+      "realmRoles": ["HR", "USER"]
+    },
+    {
+      "name": "inventory-team",
+      "realmRoles": ["INVENTORY", "USER"]
+    },
+    {
+      "name": "employees",
+      "realmRoles": ["USER"]
+    }
+  ],
+
+  "clients": [
+    {
+      "clientId": "spring-api",
+      "name": "Spring Boot API Gateway",
+      "description": "Main API gateway client",
+      "enabled": true,
+      "clientAuthenticatorType": "client-secret",
+      "secret": "spring-api-secret-2024",
+      "redirectUris": ["http://localhost:8081/*", "http://keyclock-app:8081/*"],
+      "webOrigins": ["http://localhost:8081", "http://keyclock-app:8081"],
+      "standardFlowEnabled": true,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": true,
+      "serviceAccountsEnabled": true,
+      "publicClient": false,
+      "bearerOnly": false,
+      "protocol": "openid-connect",
+      "attributes": {
+        "access.token.lifespan": "300",
+        "use.refresh.tokens": "true",
+        "refresh.token.max.reuse": "0"
+      },
+      "protocolMappers": [
+        {
+          "name": "realm-roles-mapper",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-realm-role-mapper",
+          "consentRequired": false,
+          "config": {
+            "claim.name": "realm_access.roles",
+            "jsonType.label": "String",
+            "multivalued": "true",
+            "id.token.claim": "true",
+            "access.token.claim": "true",
+            "userinfo.token.claim": "true"
+          }
+        }
+      ]
+    },
+    {
+      "clientId": "payroll-service",
+      "name": "Payroll Microservice",
+      "description": "Payroll system service account",
+      "enabled": true,
+      "clientAuthenticatorType": "client-secret",
+      "secret": "payroll-service-secret-2024",
+      "standardFlowEnabled": false,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": true,
+      "publicClient": false,
+      "bearerOnly": true,
+      "protocol": "openid-connect"
+    },
+    {
+      "clientId": "hr-service",
+      "name": "HR Microservice",
+      "description": "HR system service account",
+      "enabled": true,
+      "clientAuthenticatorType": "client-secret",
+      "secret": "hr-service-secret-2024",
+      "standardFlowEnabled": false,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": true,
+      "publicClient": false,
+      "bearerOnly": true,
+      "protocol": "openid-connect"
+    },
+    {
+      "clientId": "inventory-service",
+      "name": "Inventory Microservice",
+      "description": "Inventory system service account",
+      "enabled": true,
+      "clientAuthenticatorType": "client-secret",
+      "secret": "inventory-service-secret-2024",
+      "standardFlowEnabled": false,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": true,
+      "publicClient": false,
+      "bearerOnly": true,
+      "protocol": "openid-connect"
+    },
+    {
+      "clientId": "frontend-app",
+      "name": "Frontend Application (PKCE)",
+      "description": "Browser-based frontend with PKCE",
+      "enabled": true,
+      "publicClient": true,
+      "standardFlowEnabled": true,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": false,
+      "redirectUris": ["http://localhost:3000/*", "http://localhost:5173/*"],
+      "webOrigins": ["http://localhost:3000", "http://localhost:5173"],
+      "attributes": {
+        "pkce.code.challenge.method": "S256"
+      },
+      "protocol": "openid-connect"
+    },
+    {
+      "clientId": "admin-cli-custom",
+      "name": "Admin CLI Client",
+      "description": "For Keycloak Admin REST API automation",
+      "enabled": true,
+      "clientAuthenticatorType": "client-secret",
+      "secret": "admin-cli-secret-2024",
+      "serviceAccountsEnabled": true,
+      "standardFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "publicClient": false,
+      "bearerOnly": false,
+      "protocol": "openid-connect"
+    }
+  ],
+
+  "components": {
+    "org.keycloak.storage.UserStorageProvider": [
+      {
+        "id": "openldap-federation",
+        "name": "openldap",
+        "providerId": "ldap",
+        "subComponents": {
+          "org.keycloak.storage.ldap.mappers.LDAPStorageMapper": [
+            {
+              "name": "username",
+              "providerId": "user-attribute-ldap-mapper",
+              "subComponents": {},
+              "config": {
+                "ldap.attribute": ["uid"],
+                "is.mandatory.in.ldap": ["true"],
+                "read.only": ["true"],
+                "always.read.value.from.ldap": ["false"],
+                "user.model.attribute": ["username"]
+              }
+            },
+            {
+              "name": "email",
+              "providerId": "user-attribute-ldap-mapper",
+              "subComponents": {},
+              "config": {
+                "ldap.attribute": ["mail"],
+                "is.mandatory.in.ldap": ["false"],
+                "read.only": ["true"],
+                "always.read.value.from.ldap": ["false"],
+                "user.model.attribute": ["email"]
+              }
+            },
+            {
+              "name": "first name",
+              "providerId": "user-attribute-ldap-mapper",
+              "subComponents": {},
+              "config": {
+                "ldap.attribute": ["givenName"],
+                "is.mandatory.in.ldap": ["false"],
+                "read.only": ["true"],
+                "always.read.value.from.ldap": ["true"],
+                "user.model.attribute": ["firstName"]
+              }
+            },
+            {
+              "name": "last name",
+              "providerId": "user-attribute-ldap-mapper",
+              "subComponents": {},
+              "config": {
+                "ldap.attribute": ["sn"],
+                "is.mandatory.in.ldap": ["true"],
+                "read.only": ["true"],
+                "always.read.value.from.ldap": ["true"],
+                "user.model.attribute": ["lastName"]
+              }
+            },
+            {
+              "name": "groups",
+              "providerId": "group-ldap-mapper",
+              "subComponents": {},
+              "config": {
+                "mode": ["READ_ONLY"],
+                "membership.attribute.type": ["DN"],
+                "user.roles.retrieve.strategy": ["LOAD_GROUPS_BY_MEMBER_ATTRIBUTE"],
+                "group.name.ldap.attribute": ["cn"],
+                "membership.ldap.attribute": ["member"],
+                "preserve.group.inheritance": ["false"],
+                "ignore.missing.groups": ["false"],
+                "groups.dn": ["ou=Groups,dc=company,dc=com"],
+                "group.object.classes": ["groupOfNames"],
+                "groups.path": ["/"],
+                "drop.non.existing.groups.during.sync": ["false"]
+              }
+            }
+          ]
+        },
+        "config": {
+          "enabled": ["true"],
+          "priority": ["0"],
+          "fullSyncPeriod": ["-1"],
+          "changedSyncPeriod": ["600"],
+          "cachePolicy": ["DEFAULT"],
+          "evictionDay": [],
+          "evictionHour": [],
+          "evictionMinute": [],
+          "maxLifespan": [],
+          "batchSizeForSync": ["1000"],
+          "editMode": ["READ_ONLY"],
+          "importEnabled": ["true"],
+          "syncRegistrations": ["false"],
+          "vendor": ["other"],
+          "usernameLDAPAttribute": ["uid"],
+          "rdnLDAPAttribute": ["uid"],
+          "uuidLDAPAttribute": ["entryUUID"],
+          "userObjectClasses": ["inetOrgPerson, organizationalPerson"],
+          "connectionUrl": ["ldap://openldap:1389"],
+          "usersDn": ["ou=People,dc=company,dc=com"],
+          "authType": ["simple"],
+          "bindDn": ["cn=admin,dc=company,dc=com"],
+          "bindCredential": ["LdapAdmin@2024"],
+          "searchScope": ["1"],
+          "validatePasswordPolicy": ["false"],
+          "trustEmail": ["false"],
+          "useTruststoreSpi": ["ldapsOnly"],
+          "connectionPooling": ["true"],
+          "pagination": ["true"],
+          "allowKerberosAuthentication": ["false"],
+          "debug": ["false"],
+          "useKerberosForPasswordAuthentication": ["false"]
+        }
+      }
+    ]
+  },
+
+  "defaultRoles": ["USER"],
+
+  "smtpServer": {},
+
+  "loginTheme": "keycloak",
+  "accountTheme": "keycloak.v3",
+  "adminTheme": "keycloak.v2",
+  "emailTheme": "keycloak",
+
+  "eventsEnabled": true,
+  "eventsExpiration": 604800,
+  "adminEventsEnabled": true,
+  "adminEventsDetailsEnabled": true,
+
+  "internationalizationEnabled": false,
+  "supportedLocales": ["en"],
+  "defaultLocale": "en"
+}

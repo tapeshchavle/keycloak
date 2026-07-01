@@ -1,0 +1,22 @@
+# ===========================================================
+# BASE DIRECTORY STRUCTURE
+# dc=company,dc=com
+# ===========================================================
+
+# Root entry is auto-created by Bitnami OpenLDAP via LDAP_ROOT env var
+# We only need to create OUs (Organizational Units)
+
+dn: ou=People,dc=company,dc=com
+objectClass: organizationalUnit
+ou: People
+description: All enterprise users
+
+dn: ou=Groups,dc=company,dc=com
+objectClass: organizationalUnit
+ou: Groups
+description: All enterprise groups
+
+dn: ou=ServiceAccounts,dc=company,dc=com
+objectClass: organizationalUnit
+ou: ServiceAccounts
+description: Machine-to-machine service accounts
