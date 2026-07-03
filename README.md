@@ -16,8 +16,12 @@ cd docker
 # 1. Copy environment template
 cp .env.example .env
 
-# 2. Start the full stack
+# 2. Start main containers
 docker compose up -d
+
+# Starts apps profile containers
+docker-compose --profile apps up -d
+
 
 # 3. Wait for Keycloak to be ready (~90 seconds)
 docker compose logs -f keycloak
