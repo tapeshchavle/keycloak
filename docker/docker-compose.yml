@@ -1,8 +1,6 @@
-version: '3.8'
-
 # ============================================================
 #  ENTERPRISE IAM STACK
-#  Keycloak 25 | OpenLDAP | PostgreSQL 16
+#  Keycloak 25 | osixia/openldap | PostgreSQL 16
 #  Payroll | HR | Inventory | phpLDAPadmin
 # ============================================================
 
@@ -19,7 +17,6 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-Keycloak@Secure2024}
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./init-scripts/init-db.sql:/docker-entrypoint-initdb.d/init-db.sql
     ports:
       - "5432:5432"
     networks:
@@ -31,28 +28,39 @@ services:
       retries: 5
       start_period: 20s
 
-  # ── OpenLDAP 2.6 — Enterprise User Directory ──────────────
+  # ── OpenLDAP 1.5 (osixia) — Enterprise User Directory ─────
   openldap:
-    image: bitnami/openldap:2.6
+    image: osixia/openldap:1.5.0
     container_name: openldap
     restart: unless-stopped
     environment:
-      LDAP_ADMIN_USERNAME: admin
+      LDAP_ORGANISATION: "Company Enterprise"
+      LDAP_DOMAIN: "company.com"
+      LDAP_BASE_DN: "dc=company,dc=com"
       LDAP_ADMIN_PASSWORD: ${LDAP_ADMIN_PASSWORD:-LdapAdmin@2024}
-      LDAP_ROOT: dc=company,dc=com
-      LDAP_ADMIN_DN: cn=admin,dc=company,dc=com
-      LDAP_CUSTOM_LDIF_DIR: /ldifs
-      BITNAMI_DEBUG: "false"
+      LDAP_READONLY_USER: "true"
+      LDAP_READONLY_USER_USERNAME: "readonly"
+      LDAP_READONLY_USER_PASSWORD: "readonly123"
+      LDAP_TLS: "false"
+      LDAP_REMOVE_CONFIG_AFTER_SETUP: "false"
     volumes:
-      - ./openldap/bootstrap:/ldifs:ro
-      - openldap_data:/bitnami/openldap
+      - ./openldap/bootstrap:/container/service/slapd/assets/config/bootstrap/ldif/custom:ro
+      - openldap_data:/var/lib/ldap
+      - openldap_config:/etc/ldap/slapd.d
     ports:
-      - "389:1389"
-      - "636:1636"
+      - "389:389"
+      - "636:636"
+    command: ["--copy-service", "--loglevel", "warning"]
     networks:
       - iam-network
+    healthcheck:
+      test: ["CMD-SHELL", "ldapsearch -H ldap://localhost -x -b 'dc=company,dc=com' -D 'cn=admin,dc=company,dc=com' -w $${LDAP_ADMIN_PASSWORD:-LdapAdmin@2024} '(objectclass=*)' dn 2>/dev/null | grep -q 'dn:' && echo OK"]
+      interval: 20s
+      timeout: 10s
+      retries: 8
+      start_period: 30s
 
-  # ── phpLDAPadmin — LDAP Web UI (dev/admin) ─────────────────
+  # ── phpLDAPadmin — LDAP Web UI ─────────────────────────────
   phpldapadmin:
     image: osixia/phpldapadmin:0.9.0
     container_name: phpldapadmin
@@ -94,12 +102,6 @@ services:
         condition: service_healthy
     networks:
       - iam-network
-    healthcheck:
-      test: ["CMD-SHELL", "curl -sf http://localhost:8080/health/ready || exit 1"]
-      interval: 30s
-      timeout: 15s
-      retries: 15
-      start_period: 120s
 
   # ── Keyclock App — Main Spring Boot API Gateway ─────────────
   keyclock-app:
@@ -119,9 +121,11 @@ services:
       - "8081:8081"
     depends_on:
       keycloak:
-        condition: service_healthy
+        condition: service_started
     networks:
       - iam-network
+    profiles:
+      - apps
 
   # ── Payroll Service — Port 8082 ────────────────────────────
   payroll-service:
@@ -138,9 +142,11 @@ services:
       - "8082:8082"
     depends_on:
       keycloak:
-        condition: service_healthy
+        condition: service_started
     networks:
       - iam-network
+    profiles:
+      - apps
 
   # ── HR Service — Port 8083 ─────────────────────────────────
   hr-service:
@@ -157,9 +163,11 @@ services:
       - "8083:8083"
     depends_on:
       keycloak:
-        condition: service_healthy
+        condition: service_started
     networks:
       - iam-network
+    profiles:
+      - apps
 
   # ── Inventory Service — Port 8084 ──────────────────────────
   inventory-service:
@@ -176,14 +184,18 @@ services:
       - "8084:8084"
     depends_on:
       keycloak:
-        condition: service_healthy
+        condition: service_started
     networks:
       - iam-network
+    profiles:
+      - apps
 
 volumes:
   postgres_data:
     driver: local
   openldap_data:
+    driver: local
+  openldap_config:
     driver: local
 
 networks:

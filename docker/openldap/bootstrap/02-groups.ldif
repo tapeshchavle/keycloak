@@ -1,0 +1,31 @@
+# Enterprise Groups — mapped to Keycloak realm roles via group-ldap-mapper
+
+dn: cn=admins,ou=Groups,dc=company,dc=com
+objectClass: groupOfNames
+cn: admins
+description: Full system administrators
+member: cn=admin,dc=company,dc=com
+
+dn: cn=payroll-team,ou=Groups,dc=company,dc=com
+objectClass: groupOfNames
+cn: payroll-team
+description: Payroll team
+member: cn=admin,dc=company,dc=com
+
+dn: cn=hr-team,ou=Groups,dc=company,dc=com
+objectClass: groupOfNames
+cn: hr-team
+description: HR team
+member: cn=admin,dc=company,dc=com
+
+dn: cn=inventory-team,ou=Groups,dc=company,dc=com
+objectClass: groupOfNames
+cn: inventory-team
+description: Inventory team
+member: cn=admin,dc=company,dc=com
+
+dn: cn=employees,ou=Groups,dc=company,dc=com
+objectClass: groupOfNames
+cn: employees
+description: All employees
+member: cn=admin,dc=company,dc=com

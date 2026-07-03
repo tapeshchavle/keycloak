@@ -1,0 +1,40 @@
+# Add users to groups
+
+# Admins group — admin.user gets all roles
+dn: cn=admins,ou=Groups,dc=company,dc=com
+changetype: modify
+add: member
+member: uid=admin.user,ou=People,dc=company,dc=com
+
+# Payroll team — john.doe
+dn: cn=payroll-team,ou=Groups,dc=company,dc=com
+changetype: modify
+add: member
+member: uid=john.doe,ou=People,dc=company,dc=com
+
+# HR team — jane.smith
+dn: cn=hr-team,ou=Groups,dc=company,dc=com
+changetype: modify
+add: member
+member: uid=jane.smith,ou=People,dc=company,dc=com
+
+# Inventory team — bob.johnson
+dn: cn=inventory-team,ou=Groups,dc=company,dc=com
+changetype: modify
+add: member
+member: uid=bob.johnson,ou=People,dc=company,dc=com
+
+# Employees — all users
+dn: cn=employees,ou=Groups,dc=company,dc=com
+changetype: modify
+add: member
+member: uid=john.doe,ou=People,dc=company,dc=com
+-
+add: member
+member: uid=jane.smith,ou=People,dc=company,dc=com
+-
+add: member
+member: uid=bob.johnson,ou=People,dc=company,dc=com
+-
+add: member
+member: uid=alice.chen,ou=People,dc=company,dc=com

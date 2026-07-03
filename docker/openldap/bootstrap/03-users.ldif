@@ -1,11 +1,7 @@
-# ===========================================================
-# SAMPLE ENTERPRISE USERS  (DEV/STAGING ONLY)
-# Password for all users: Test@1234
-# LDAP password hash: {SSHA}...  (pre-hashed via slappasswd)
-# Plain password in userPassword used here for dev simplicity
-# ===========================================================
+# Sample Enterprise Users — DEV/STAGING ONLY
+# Password for all: Test@1234
+# Using plain userPassword for dev simplicity
 
-# Admin User
 dn: uid=admin.user,ou=People,dc=company,dc=com
 objectClass: inetOrgPerson
 objectClass: organizationalPerson
@@ -18,11 +14,8 @@ givenName: Admin
 mail: admin.user@company.com
 displayName: Admin User
 telephoneNumber: +1-555-0001
-departmentNumber: IT
 userPassword: Test@1234
-description: System Administrator
 
-# Payroll Manager
 dn: uid=john.doe,ou=People,dc=company,dc=com
 objectClass: inetOrgPerson
 objectClass: organizationalPerson
@@ -35,11 +28,8 @@ givenName: John
 mail: john.doe@company.com
 displayName: John Doe
 telephoneNumber: +1-555-0002
-departmentNumber: Finance
 userPassword: Test@1234
-description: Payroll Manager
 
-# HR Manager
 dn: uid=jane.smith,ou=People,dc=company,dc=com
 objectClass: inetOrgPerson
 objectClass: organizationalPerson
@@ -52,11 +42,8 @@ givenName: Jane
 mail: jane.smith@company.com
 displayName: Jane Smith
 telephoneNumber: +1-555-0003
-departmentNumber: HR
 userPassword: Test@1234
-description: HR Manager
 
-# Inventory Manager
 dn: uid=bob.johnson,ou=People,dc=company,dc=com
 objectClass: inetOrgPerson
 objectClass: organizationalPerson
@@ -69,11 +56,8 @@ givenName: Bob
 mail: bob.johnson@company.com
 displayName: Bob Johnson
 telephoneNumber: +1-555-0004
-departmentNumber: Operations
 userPassword: Test@1234
-description: Inventory Manager
 
-# Regular Employee
 dn: uid=alice.chen,ou=People,dc=company,dc=com
 objectClass: inetOrgPerson
 objectClass: organizationalPerson
@@ -86,6 +70,4 @@ givenName: Alice
 mail: alice.chen@company.com
 displayName: Alice Chen
 telephoneNumber: +1-555-0005
-departmentNumber: Engineering
 userPassword: Test@1234
-description: Software Engineer
