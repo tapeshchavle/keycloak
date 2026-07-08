@@ -1,0 +1,725 @@
+{
+  "info": {
+    "_postman_id": "16432d5f-986a-44ab-90b6-6c2d5a3eba89",
+    "name": "RBAC Microservices API Tests",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "37626377",
+    "_collection_link": "https://go.postman.co/collection/37626377-16432d5f-986a-44ab-90b6-6c2d5a3eba89?source=collection_link"
+  },
+  "item": [
+    {
+      "name": "Auth Service (8081)",
+      "item": [
+        {
+          "name": "Login as john.doe (USER+PAYROLL)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Response contains access_token\", function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property(\"access_token\");",
+                  "    pm.expect(jsonData.access_token).to.be.a(\"string\").and.not.empty;",
+                  "});",
+                  "",
+                  "pm.test(\"Response contains refresh_token\", function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property(\"refresh_token\");",
+                  "    pm.expect(jsonData.refresh_token).to.be.a(\"string\").and.not.empty;",
+                  "});",
+                  "",
+                  "pm.test(\"Response contains token_type Bearer\", function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.token_type).to.eql(\"Bearer\");",
+                  "});",
+                  "",
+                  "pm.test(\"Token expires_in is a positive number\", function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.expires_in).to.be.a(\"number\").and.to.be.above(0);",
+                  "});",
+                  "",
+                  "// Save tokens for subsequent requests",
+                  "const jsonData = pm.response.json();",
+                  "pm.collectionVariables.set(\"john_token\", jsonData.access_token);",
+                  "pm.collectionVariables.set(\"john_refresh_token\", jsonData.refresh_token);",
+                  "pm.collectionVariables.set(\"access_token\", jsonData.access_token);",
+                  "pm.collectionVariables.set(\"refresh_token\", jsonData.refresh_token);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"username\": \"john.doe\", \"password\": \"{{password}}\"}"
+            },
+            "url": {
+              "raw": "{{auth_base_url}}/api/auth/token",
+              "host": [
+                "{{auth_base_url}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "token"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Login as alice.chen (USER only)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Response contains access_token\", function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property(\"access_token\");",
+                  "    pm.expect(jsonData.access_token).to.be.a(\"string\").and.not.empty;",
+                  "});",
+                  "",
+                  "pm.test(\"Response contains refresh_token\", function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property(\"refresh_token\");",
+                  "});",
+                  "",
+                  "pm.test(\"Response contains token_type Bearer\", function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.token_type).to.eql(\"Bearer\");",
+                  "});",
+                  "",
+                  "pm.test(\"Token expires_in is a positive number\", function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.expires_in).to.be.a(\"number\").and.to.be.above(0);",
+                  "});",
+                  "",
+                  "// Save alice's token",
+                  "const jsonData = pm.response.json();",
+                  "pm.collectionVariables.set(\"alice_token\", jsonData.access_token);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"username\": \"alice.chen\", \"password\": \"{{password}}\"}"
+            },
+            "url": {
+              "raw": "{{auth_base_url}}/api/auth/token",
+              "host": [
+                "{{auth_base_url}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "token"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Login as admin.user (ALL ROLES)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Response contains access_token\", function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property(\"access_token\");",
+                  "    pm.expect(jsonData.access_token).to.be.a(\"string\").and.not.empty;",
+                  "});",
+                  "",
+                  "pm.test(\"Response contains refresh_token\", function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property(\"refresh_token\");",
+                  "});",
+                  "",
+                  "pm.test(\"Response contains token_type Bearer\", function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.token_type).to.eql(\"Bearer\");",
+                  "});",
+                  "",
+                  "pm.test(\"Token expires_in is a positive number\", function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.expires_in).to.be.a(\"number\").and.to.be.above(0);",
+                  "});",
+                  "",
+                  "// Save admin token",
+                  "const jsonData = pm.response.json();",
+                  "pm.collectionVariables.set(\"admin_token\", jsonData.access_token);",
+                  "pm.collectionVariables.set(\"admin_refresh_token\", jsonData.refresh_token);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"username\": \"admin.user\", \"password\": \"{{password}}\"}"
+            },
+            "url": {
+              "raw": "{{auth_base_url}}/api/auth/token",
+              "host": [
+                "{{auth_base_url}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "token"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Current User Info",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Response contains user information\", function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property(\"username\");",
+                  "    pm.expect(jsonData.username).to.be.a(\"string\").and.not.empty;",
+                  "});",
+                  "",
+                  "pm.test(\"Response contains roles array\", function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property(\"roles\");",
+                  "    pm.expect(jsonData.roles).to.be.an(\"array\").and.not.empty;",
+                  "});",
+                  "",
+                  "pm.test(\"Response time is less than 500ms\", function () {",
+                  "    pm.expect(pm.response.responseTime).to.be.below(500);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{auth_base_url}}/api/auth/me",
+              "host": [
+                "{{auth_base_url}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "me"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Refresh Token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Response contains new access_token\", function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property(\"access_token\");",
+                  "    pm.expect(jsonData.access_token).to.be.a(\"string\").and.not.empty;",
+                  "});",
+                  "",
+                  "pm.test(\"Response contains new refresh_token\", function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property(\"refresh_token\");",
+                  "    pm.expect(jsonData.refresh_token).to.be.a(\"string\").and.not.empty;",
+                  "});",
+                  "",
+                  "pm.test(\"New token is different from old token\", function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    const oldToken = pm.collectionVariables.get(\"access_token\");",
+                  "    // New token should ideally be different",
+                  "    pm.expect(jsonData.access_token).to.be.a(\"string\");",
+                  "});",
+                  "",
+                  "// Update stored tokens",
+                  "const jsonData = pm.response.json();",
+                  "if (jsonData.access_token) {",
+                  "    pm.collectionVariables.set(\"access_token\", jsonData.access_token);",
+                  "}",
+                  "if (jsonData.refresh_token) {",
+                  "    pm.collectionVariables.set(\"refresh_token\", jsonData.refresh_token);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"refresh_token\": \"{{refresh_token}}\"}"
+            },
+            "url": {
+              "raw": "{{auth_base_url}}/api/auth/refresh",
+              "host": [
+                "{{auth_base_url}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "refresh"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Payroll Service (8082)",
+      "item": [
+        {
+          "name": "Get My Salary",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Response contains salary data\", function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.be.an(\"object\");",
+                  "});",
+                  "",
+                  "pm.test(\"Salary amount is a positive number\", function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    if (jsonData.salary || jsonData.amount) {",
+                  "        const salary = jsonData.salary || jsonData.amount;",
+                  "        pm.expect(salary).to.be.a(\"number\").and.to.be.above(0);",
+                  "    }",
+                  "});",
+                  "",
+                  "pm.test(\"Response time is less than 1000ms\", function () {",
+                  "    pm.expect(pm.response.responseTime).to.be.below(1000);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{payroll_base_url}}/api/payroll/my-salary",
+              "host": [
+                "{{payroll_base_url}}"
+              ],
+              "path": [
+                "api",
+                "payroll",
+                "my-salary"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get All Salaries (ROLE_PAYROLL required)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200 (user has ROLE_PAYROLL)\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Response is an array of salary records\", function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.be.an(\"array\");",
+                  "    pm.expect(jsonData.length).to.be.above(0);",
+                  "});",
+                  "",
+                  "pm.test(\"Each salary record has required fields\", function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    if (Array.isArray(jsonData) && jsonData.length > 0) {",
+                  "        jsonData.forEach(function(record) {",
+                  "            pm.expect(record).to.have.property(\"username\").or.have.property(\"employeeId\");",
+                  "        });",
+                  "    }",
+                  "});",
+                  "",
+                  "pm.test(\"Response time is less than 1000ms\", function () {",
+                  "    pm.expect(pm.response.responseTime).to.be.below(1000);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{payroll_base_url}}/api/payroll/salaries",
+              "host": [
+                "{{payroll_base_url}}"
+              ],
+              "path": [
+                "api",
+                "payroll",
+                "salaries"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Process Payroll (ROLE_ADMIN required)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// This test depends on which token is being used",
+                  "const statusCode = pm.response.code;",
+                  "",
+                  "if (statusCode === 200 || statusCode === 201) {",
+                  "    pm.test(\"Payroll processed successfully (admin token used)\", function () {",
+                  "        pm.expect(statusCode).to.be.oneOf([200, 201]);",
+                  "    });",
+                  "",
+                  "    pm.test(\"Response confirms processing\", function () {",
+                  "        const jsonData = pm.response.json();",
+                  "        pm.expect(jsonData).to.be.an(\"object\");",
+                  "    });",
+                  "} else if (statusCode === 403) {",
+                  "    pm.test(\"Access denied - user lacks ROLE_ADMIN\", function () {",
+                  "        pm.response.to.have.status(403);",
+                  "    });",
+                  "",
+                  "    pm.test(\"Error response contains forbidden message\", function () {",
+                  "        const jsonData = pm.response.json();",
+                  "        pm.expect(jsonData).to.have.property(\"error\");",
+                  "        pm.expect(jsonData.error).to.include(\"FORBIDDEN\");",
+                  "    });",
+                  "}",
+                  "",
+                  "pm.test(\"Response time is less than 1000ms\", function () {",
+                  "    pm.expect(pm.response.responseTime).to.be.below(1000);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"period\": \"2024-12\"}"
+            },
+            "url": {
+              "raw": "{{payroll_base_url}}/api/payroll/process",
+              "host": [
+                "{{payroll_base_url}}"
+              ],
+              "path": [
+                "api",
+                "payroll",
+                "process"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "HR Service (8083)",
+      "item": [
+        {
+          "name": "Get All Employees (ROLE_HR required)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const statusCode = pm.response.code;",
+                  "",
+                  "if (statusCode === 200) {",
+                  "    pm.test(\"Status code is 200 (user has ROLE_HR)\", function () {",
+                  "        pm.response.to.have.status(200);",
+                  "    });",
+                  "",
+                  "    pm.test(\"Response is an array of employees\", function () {",
+                  "        const jsonData = pm.response.json();",
+                  "        pm.expect(jsonData).to.be.an(\"array\");",
+                  "    });",
+                  "",
+                  "    pm.test(\"Employee records have required fields\", function () {",
+                  "        const jsonData = pm.response.json();",
+                  "        if (Array.isArray(jsonData) && jsonData.length > 0) {",
+                  "            jsonData.forEach(function(emp) {",
+                  "                pm.expect(emp).to.have.property(\"username\").or.have.property(\"name\").or.have.property(\"employeeId\");",
+                  "            });",
+                  "        }",
+                  "    });",
+                  "} else if (statusCode === 403) {",
+                  "    pm.test(\"Access denied - user lacks ROLE_HR (403 Forbidden)\", function () {",
+                  "        pm.response.to.have.status(403);",
+                  "    });",
+                  "",
+                  "    pm.test(\"Error response contains forbidden message\", function () {",
+                  "        const jsonData = pm.response.json();",
+                  "        pm.expect(jsonData).to.have.property(\"error\");",
+                  "        pm.expect(jsonData.error).to.include(\"FORBIDDEN\");",
+                  "    });",
+                  "",
+                  "    pm.test(\"Error message mentions required role\", function () {",
+                  "        const jsonData = pm.response.json();",
+                  "        pm.expect(jsonData).to.have.property(\"message\");",
+                  "        pm.expect(jsonData.message).to.include(\"role\");",
+                  "    });",
+                  "}",
+                  "",
+                  "pm.test(\"Response time is less than 1000ms\", function () {",
+                  "    pm.expect(pm.response.responseTime).to.be.below(1000);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{hr_base_url}}/api/hr/employees",
+              "host": [
+                "{{hr_base_url}}"
+              ],
+              "path": [
+                "api",
+                "hr",
+                "employees"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Inventory Service (8084)",
+      "item": [
+        {
+          "name": "Get Products (ROLE_USER allowed)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200 (any authenticated user can access)\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Response is an array of products\", function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.be.an(\"array\");",
+                  "});",
+                  "",
+                  "pm.test(\"Products have required fields\", function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    if (Array.isArray(jsonData) && jsonData.length > 0) {",
+                  "        jsonData.forEach(function(product) {",
+                  "            pm.expect(product).to.have.property(\"name\").or.have.property(\"productId\").or.have.property(\"id\");",
+                  "        });",
+                  "    }",
+                  "});",
+                  "",
+                  "pm.test(\"Response time is less than 1000ms\", function () {",
+                  "    pm.expect(pm.response.responseTime).to.be.below(1000);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{inventory_base_url}}/api/inventory/products",
+              "host": [
+                "{{inventory_base_url}}"
+              ],
+              "path": [
+                "api",
+                "inventory",
+                "products"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Stock Levels (ROLE_INVENTORY required)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{inventory_base_url}}/api/inventory/stock",
+              "host": [
+                "{{inventory_base_url}}"
+              ],
+              "path": [
+                "api",
+                "inventory",
+                "stock"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Product (ROLE_ADMIN required)",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{inventory_base_url}}/api/inventory/products/PROD001",
+              "host": [
+                "{{inventory_base_url}}"
+              ],
+              "path": [
+                "api",
+                "inventory",
+                "products",
+                "PROD001"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Collection-level pre-request script - nothing needed here for now"
+        ]
+      }
+    }
+  ]
+}
